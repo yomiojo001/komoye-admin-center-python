@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historique des Scans</title>
+</head>
+<body>
+    <h1>Historique des Scans</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Plage Réseau</th>
+                <th>Options de Scan</th>
+                <th>Date et Heure</th>
+                <th>Détails</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for scan in scans %}
+            <tr>
+                <td>{{ scan.id }}</td>
+                <td>{{ scan.network_range }}</td>
+                <td>{{ scan.scan_options }}</td>
+                <td>{{ scan.timestamp }}</td>
+                <td><a href="{{ url_for('scan_details', scan_id=scan.id) }}">Voir Détails</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="/network_scan_page">Retour au Scan</a>
+</body>
+</html>

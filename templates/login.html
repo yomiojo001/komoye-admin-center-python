@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <!-- Custom Styles -->
+    <style>
+     body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f7f7f7; color: #333; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+           /* Container */
+    .container {
+        width: 90%;
+        max-width: 400px;
+        margin: 20px auto;
+        padding: 20px;
+        border-radius: 8px;
+        background: #FFFFFF;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Headings */
+    h1 {
+        font-size: 28px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        text-align: center;
+        color: #000;
+    }
+
+    /* Form Controls */
+    .form-control {
+        display: block;
+        width: 100%;
+        padding: 10px 12px;
+        font-size: 16px;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #333;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .form-control:focus {
+        color: #333;
+        background-color: #fff;
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    /* Submit Button */
+    .btn-primary {
+        display: block;
+        width: 100%;
+        padding: 10px 16px;
+        font-size: 18px;
+        font-weight: 600;
+        color: #fff;
+        background-color: #007bff;
+        border-color: #007bff;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #004a99;
+    }
+        /* Buttons */
+.update-button,
+.logout-button {
+  background-color: #f0f0f0; /* Light gray background */
+  color: #333;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-weight: 500;
+}
+
+.update-button:hover,
+.logout-button:hover {
+  background-color: #ddd;
+}
+
+/* Navigation Bar */
+.navigation-bar {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+/* Logout Button */
+.logout-button {
+  margin-left: 10px;
+}
+
+/* Font Awesome Icons (optional) */
+.fa {
+  font-family: FontAwesome; /* Replace with your Font Awesome path */
+}
+
+/* Floating buttons container */
+ .floating-buttons {
+            position: fixed;
+            top: 180px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+
+        }
+
+        .floating-buttons button {
+            color: gray;
+            border: 1px solid #dadce0;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        .floating-buttons button:hover {
+            background-color: #f1f3f4;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+</style>
+
+
+</head>
+<body>
+    <div class="container">
+        <div class="floating-buttons">
+            <button class="logout-button" onclick="networkscanpage()"><i style="color:blue;" class="fas fa-network-wired"></i></button>
+
+        </div>
+        <h1><i style="color:blue;" class="fas fa-terminal"></i> RDP à <span id="ip-address"></span></h1>
+        <form  method="POST">
+            <div class="form-group">
+                <label for="host">Host</label>
+                <input type="text" class="form-control" id="host" name="host">
+            </div>
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" class="form-control" id="username" name="username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" class="form-control" id="password" name="password">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Login</button>
+        </form>
+    </div>
+    <!-- jQuery, Popper.js, and Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script>
+        // Retrieve the host parameter from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const host = urlParams.get('host');
+        if (host) {
+            document.getElementById('host').value = host;
+            document.getElementById('ip-address').innerText = host;
+        }
+        function networkscanpage() {
+            window.location.href = '/network_scan_page';
+        }
+    </script>
+    <!-- jQuery, Popper.js, and Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+</body>
+</html>

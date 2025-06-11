@@ -1,0 +1,1681 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorateur de fichiers</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+        <style>
+/* Police de caractères */
+body {
+    font-family: "Roboto", sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+
+/* Conteneur principal */
+.container {
+    width: 90%;
+    max-width: 1200px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    margin-top:50px;
+}
+
+/* Boutons flottants */
+.floating-buttons {
+    position: fixed;
+    top: 50px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.floating-buttons button {
+    background-color: #fff;
+    color: #666;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index : 100;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.floating-buttons button:hover {
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+/* Barre de recherche */
+.search-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background-color: #f5f5f5;
+    padding: 10px 15px;
+    border-radius: 20px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.search-bar input {
+    width: 100%;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    background-color: transparent;
+}
+
+.view-toggle {
+    display: flex;
+    gap: 10px;
+}
+
+.view-toggle button {
+    background-color: #fff;
+    color: #666;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.view-toggle button:hover {
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+/* Titres */
+h1, h2 {
+text-align: left;
+color: #333;
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+line-height: 1.2;
+margin: 0;
+padding: 0;
+}
+
+h1 {
+font-size: 20px;
+font-weight: 700;
+margin-bottom: 8px;
+padding-bottom: 2px;
+border-bottom: 1px solid #ccc;
+}
+
+h2 {
+font-size: 16px;
+font-weight: 600;
+margin-bottom: 6px;
+}
+
+/* Grille de fichiers */
+.file-grid, .file-list {
+    display: grid;
+    gap: 20px;
+}
+
+.file-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.file-list {
+    grid-template-columns: 1fr;
+}
+
+/* Élément de fichier */
+.file-item {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.file-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 1;
+}
+
+.file-item a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.file-item .file-icon {
+    font-size: 40px;
+    color: #8e8e93;
+    margin-bottom: 12px;
+}
+
+.file-item .file-name {
+    font-size: 15px;
+    font-weight: 500;
+    word-break: break-word;
+}
+
+.file-item .progress-container {
+    width: 100%;
+    height: 6px;
+    background-color: #e5e5ea;
+    border-radius: 4px;
+    margin-top: 12px;
+}
+
+.file-item .progress-bar {
+    height: 100%;
+    border-radius: 4px;
+    background-color: #007aff;
+    transition: width 0.3s ease;
+}
+
+.file-item .progress-text {
+    font-size: 13px;
+    color: #8e8e93;
+    margin-top: 8px;
+}
+
+/* Options de fichier */
+.file-item-options {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.file-item:hover .file-item-options {
+    opacity: 1;
+}
+
+.file-item-options button {
+    background-color: #f5f5f5;
+    color: #333;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 14px;
+}
+
+.file-item-options button:hover {
+    background-color: #e5e5ea;
+}
+
+.file-item-options button.option-button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.file-item-options button.option-button i {
+    font-size: 16px;
+}
+
+.file-options-menu {
+    position: absolute;
+    top: 40px;
+    right: 0;
+    background-color: #f5f5f5;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 2;
+}
+
+.file-options-menu button {
+    background-color: transparent;
+    color: #333;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.file-options-menu button:hover {
+    background-color: #e5e5ea;
+}
+
+.file-options-menu button i {
+    font-size: 16px;
+}
+
+/* CPU et utilisation de la RAM */
+.file-grid.system-info {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+.file-item.system-info {
+    text-align: left;
+    padding: 20px;
+}
+/* CPU et utilisation de la RAM */
+.file-item.system-info .file-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.file-item.system-info .file-name {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.file-item.system-info .progress-container {
+    width: 100%;
+    height: 6px;
+    background-color: #e5e5ea;
+    border-radius: 4px;
+    margin-top: 10px;
+}
+
+.file-item.system-info .progress-bar {
+    height: 100%;
+    border-radius: 4px;
+    background-color: #007aff;
+    transition: width 0.3s ease;
+}
+
+.file-item.system-info .progress-text {
+    font-size: 13px;
+    color: #8e8e93;
+    margin-top: 6px;
+}
+
+/* Mise à jour du système */
+.file-item.update-status {
+    text-align: center;
+}
+
+.file-item.update-status .file-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.file-item.update-status .file-name {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+
+
+/* Responsive */
+@media (max-width: 767px) {
+ .floating-buttons {
+        flex-direction: row;
+        top: auto;
+        bottom: 20px;
+        left: 50%;
+        z-index: 10;
+        width: 100%;
+        transform: translateX(-50%);
+        justify-content: center;
+        position: fixed; /* Ajout de cette ligne */
+    }
+
+    .floating-buttons button {
+        width: 50px;
+        height: 50px;
+        box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3); /* Ajout de cette ligne */
+    }
+
+    .view-toggle {
+        flex-direction: column;
+    }
+
+    .file-grid, .file-list {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+
+
+}
+ .floating-icon {
+            position: fixed;
+            top: 200px;
+            right: 20px;
+            font-size: 20px;
+            background-color: #fff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            animation: pulse 2s infinite;
+            transition: background-color 0.3s ease;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .floating-icon.online {
+            background-color: green;
+            color: #fff;
+        }
+
+        .floating-icon.offline {
+            background-color: red;
+            color: #fff;
+        }
+
+
+
+.ip-status {
+            top: 100px; /* Position de l'icône IP, décalée vers le bas */
+        }
+
+
+    .ip-status i {
+        font-size: 24px; /* Adjust icon size */
+
+    }
+
+    .text-success {
+        color: #28a745; /* Green color for success */
+    }
+
+    .text-danger {
+        color: #dc3545; /* Red color for error */
+    }
+
+    .disabled {
+        opacity: 0.5; /* Reduced opacity to gray out the container */
+        pointer-events: none; /* Disable pointer events to prevent clicking */
+    }
+
+
+.chart-container {
+    max-width: 900px; /* Augmente légèrement la largeur maximale pour plus d'espace */
+    margin: 40px auto; /* Ajoute une marge supérieure et inférieure pour un meilleur espacement */
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 8px; /* Arrondit légèrement les coins pour un rendu plus doux */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Ombre portée légèrement plus prononcée */
+}
+
+hr {
+
+    margin-bottom: 30px;
+    font-size: 28px; /* Augmente la taille du titre pour plus d'impact */
+    font-weight: 600; /* Utilise une graisse de police légèrement plus élevée pour plus de contraste */
+    color: #222; /* Couleur de texte plus foncée pour plus de contraste */
+}
+
+/* Conteneur des graphiques */
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 4fr);
+    gap: 10px; /* Augmente l'espace entre les graphiques pour plus de clarté */
+}
+
+.chart-item {
+    text-align: center;
+    /*padding: 25px;  Augmente légèrement l'espace autour de chaque graphique */
+    background-color: #fff;
+    border-radius: 8px; /* Arrondit légèrement les coins pour un rendu plus doux */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Ombre portée légèrement plus prononcée */
+}
+
+.chart-title {
+    font-weight: bold;
+    margin-bottom: 15px; /* Augmente légèrement l'espace sous le titre */
+    color: #222; /* Couleur de texte plus foncée pour plus de contraste */
+}
+
+canvas {
+    max-width: 100%;
+    height: auto !important;
+}
+
+.table-hover tbody tr:hover { background-color: #f5f5f5; }
+        .table thead th { border-bottom: 2px solid #dee2e6; }
+        .table thead { background-color:blue; }
+        .table td, .table th { padding: 0.75rem; vertical-align: middle; }
+        .modal-dialog { max-width: 90%; }
+
+         .update-status {
+            margin: 16px;
+            padding: 16px;
+            background-color: #f8f9fa;
+            color: #343a40;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .file-icon {
+            font-size: 24px;
+            margin-right: 12px;
+        }
+        .file-name, .last-update-date {
+            font-size: 18px;
+        }
+        .update-status {
+            margin: 16px;
+            padding: 16px;
+            background-color: #f8f9fa;
+            color: #343a40;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .file-icon {
+            font-size: 24px;
+            margin-right: 12px;
+        }
+        .file-name, .last-update-date {
+            font-size: 18px;
+        }
+        .update-status {
+            margin: 16px;
+            padding: 16px;
+            background-color: #f8f9fa;
+            color: #343a40;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .file-icon {
+            font-size: 24px;
+            margin-right: 12px;
+        }
+        .file-name, .last-update-date {
+            font-size: 18px;
+        }
+        .update-button, .check-updates-button {
+            margin-top: 12px;
+            padding: 8px 16px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .update-button:disabled, .check-updates-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .progress {
+            width: 100%;
+            background-color: #e9ecef;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+        .progress-bar {
+            width: 0%;
+            height: 24px;
+            background-color: #007bff;
+            text-align: center;
+            color: #fff;
+            line-height: 24px;
+            transition: width 0.4s;
+        }
+    </style>
+</head>
+<body>
+<nav style="position:fixed;top:0px" class="bg-blue-600 text-white py-2 px-4 flex justify-between items-center w-full">
+  <div class="flex items-center">
+    <img src="https://www.codester.com/static/uploads/items/000/046/46578/icon.png" width="24" height="24" alt="Logo" class="mr-2">
+    <a href="#" class="text-sm font-bold">KAC</a>
+    <a href="#" class="ml-2 text-sm">Komoye Admin Center</a>
+  </div>
+
+</nav>
+   <div class="container" id="host-icon-container">
+        <div class="floating-buttons">
+            <button class="logout-button" onclick="index()"><i style="color:blue;" class="fas fa-home"></i></button>
+            <button class="logout-button" onclick="networkscanpage()"><i style="color:blue;" class="fas fa-network-wired"></i></button>
+            <button class="logout-button" onclick="logout()"><i style="color:blue;" class="fas fa-desktop"></i></button>
+            <button class="logout-button" onclick="shutdownSystem()"><i style="color:red;" class="fas fa-power-off"></i></button>
+            <button class="logout-button" onclick="restartSystem()"><i style="color:red;" class="fas fa-redo-alt"></i></button>
+        </div>
+
+
+
+        <div class="search-bar">
+            <input type="text" id="myInput" placeholder="Rechercher...">
+            <div class="view-toggle">
+                <button id="gridView"><i style="color:blue;" class="fas fa-th-large"></i></button>
+                <button id="listView"><i style="color:blue;" class="fas fa-list"></i></button>
+            </div>
+        </div>
+
+        {% if drives %}
+        <h2>Lecteurs</h2>
+        <div class="file-grid view-grid">
+            {% for drive in drives %}
+            <div class="file-item">
+                <a href="/?base={{ drive }}">
+                    <div class="file-icon">
+                        <i class="fas fa-hdd"></i>
+                    </div>
+                    <div class="file-name">{{ drive }}</div>
+                </a>
+                <div class="progress-container">
+                    <div class="progress-bar" id="drive-progress-{{ loop.index }}" data-usage="{{ drive_info[drive].percent }}" style="width: {{ drive_info[drive].percent }}%;"></div>
+                </div>
+                <div class="progress-text">{{ drive_info[drive].used // (1024 * 1024 * 1024) }} Go / {{ drive_info[drive].total // (1024 * 1024 * 1024) }} Go utilisés</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <h2><hr></h2>
+        <div class="file-grid view-grid">
+            {% for name, path in common_dirs.items() %}
+            <div class="file-item">
+                <a href="/?base={{ base }}&path={{ path }}">
+                    <div class="file-icon">
+                        <i class="fas fa-folder" style="color: #FF9500;"></i>
+                    </div>
+                    <div class="file-name">{{ name }}</div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="file-grid view-grid">
+            {% if parent_dir %}
+            <div class="file-item">
+                <a href="/?base={{ base }}&path={{ parent_dir }}">
+                    <div class="file-icon">
+                        <i class="fas fa-arrow-up"></i>
+                    </div>
+                    <div class="file-name">.. (Remonter)</div>
+                </a>
+            </div>
+            {% endif %}
+            {% for file in files %}
+            <div class="file-item">
+                {% if file.is_dir %}
+                <a href="/?base={{ base }}&path={{ current_path }}/{{ file.name }}">
+                    <div class="file-icon">
+                        <i class="fas fa-folder" style="color: #FF9500;"></i>
+                    </div>
+                    <div class="file-name">{{ file.name }}</div>
+                </a>
+                {% else %}
+                <a href="/view?base={{ base }}&path={{ current_path }}/{{ file.name }}">
+                    <div class="file-icon">
+                        {% if file.name.endswith('.pdf') %}
+                        <i class="fas fa-file-pdf" style="color: #FF3B30;"></i>
+                        {% elif file.name.endswith('.jpg') or file.name.endswith('.png') %}
+                        <i class="fas fa-file-image" style="color: #5856D6;"></i>
+                        {% elif file.name.endswith('.txt') %}
+                        <i class="fas fa-file-alt" style="color: #34C759;"></i>
+                        {% else %}
+                        <i class="fas fa-file" style="color: #007AFF;"></i>
+                        {% endif %}
+                    </div>
+                    <div class="file-name">{{ file.name }}</div>
+                </a>
+                <div class="file-item-options">
+                    <button class="option-button" onclick="showFileOptionsMenu(this)">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                    <div class="file-options-menu">
+                        <button onclick="copyFile('{{ current_path }}/{{ file.name }}')">
+                            <i class="fas fa-copy"></i> Copier
+                        </button>
+                        <button onclick="cutFile('{{ current_path }}/{{ file.name }}')">
+                            <i class="fas fa-cut"></i> Couper
+                        </button>
+                        <button onclick="deleteFile('{{ current_path }}/{{ file.name }}')">
+                            <i class="fas fa-trash"></i> Supprimer
+                        </button>
+                        <button onclick="renameFile('{{ current_path }}/{{ file.name }}', '{{ file.name }}')">
+                            <i class="fas fa-edit"></i> Renommer
+                        </button>
+
+
+                    </div>
+                </div>
+                    <div>
+                        <a href="/download?base={{ base }}&path={{ current_path }}/{{ file.name }}">
+                            <i class="fas fa-download"></i>
+                        </a>
+                    </div>
+
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+               <h2><hr></h2>
+        <div class="file-grid view-grid">
+
+      <div class="m-4 bg-light text-dark p-4 rounded update-status" id="update-status">
+            <div class="file-icon">
+                <i class="fas fa-sync-alt"></i>
+            </div>
+            <div class="file-name">Vérification...</div>
+        </div>
+
+
+
+
+
+<form id="event-form" class="m-4 bg-light text-dark p-4 rounded">
+  <div class="form-group">
+    <label for="event-type" class="text-primary">Type d'événement :</label>
+    <select class="form-control bg-light text-dark" id="event-type" name="event-type" required>
+      <option value="application" class="bg-light text-dark">Application</option>
+      <option value="system" class="bg-light text-dark">Système</option>
+      <option value="security" class="bg-light text-dark">Sécurité</option>
+      <option value="setup" class="bg-light text-dark">Configuration</option>
+      <option value="forwardedEvents" class="bg-light text-dark">Événements transférés</option>
+    </select>
+  </div>
+  <button type="submit" class="btn btn-primary">Afficher les événements</button>
+</form>
+
+<div id="loading" class="text-center" style="display: none;">
+  <i class="fas fa-spinner fa-spin fa-3x text-primary"></i>
+  <p>Chargement...</p>
+</div>
+
+<div class="modal fade" id="event-modal" tabindex="-1" role="dialog" aria-labelledby="event-modal-label" aria-hidden="true">
+  <div class="modal-dialog modal-xl bg-light text-dark" role="document">
+    <div class="modal-content bg-light text-dark">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="event-modal-label">Détails des événements</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-striped table-hover bg-light text-dark">
+            <thead class="thead-light">
+              <tr>
+                <th>Type</th>
+                <th>Heure de génération</th>
+                <th>Source</th>
+                <th>Code d'événement</th>
+                <th>Message</th>
+                <th>Statut</th>
+                <th>Utilisateur</th>
+                <th>Ordinateur</th>
+              </tr>
+            </thead>
+            <tbody id="event-table-body">
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer bg-primary text-white">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <h2><hr></h2>
+        <div class="chart-container">
+
+
+    <div class="chart-grid">
+        <div class="chart-item">
+            <div class="chart-title">CPU</div>
+            <canvas id="cpuUsageChart"></canvas>
+            <div class="chart-value" id="cpu-usage-text">Calcul en cours...</div>
+        </div>
+        <div class="chart-item">
+            <div class="chart-title">RAM</div>
+            <canvas id="ramUsageChart"></canvas>
+            <div class="chart-value" id="ram-usage-text">Calcul en cours...</div>
+        </div>
+    </div>
+            <br>
+    <div class="chart-grid" id="network-charts">
+        <div class="chart-item">
+            <div class="chart-title">Réseau</div>
+            <canvas id="networkUsageChart"></canvas>
+            <div class="chart-value" id="network-usage-text">Calcul en cours...</div>
+        </div>
+    </div>
+
+
+</div>
+
+
+    </div>
+
+
+    <!-- Font Awesome -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  $(document).ready(function() {
+    console.log('Document ready');
+
+    $('#event-form').submit(function(event) {
+      event.preventDefault();
+      console.log('Form submitted');
+
+      var eventType = $('#event-type').val();
+      console.log('Selected event type:', eventType);
+
+      $('#loading').show(); // Show loading icon
+
+      $.ajax({
+        type: 'POST',
+        url: '/get_events',
+        data: { event_type: eventType },
+        success: function(data) {
+          console.log('AJAX request succeeded:', data);
+          $('#loading').hide(); // Hide loading icon
+          if (data.error) {
+            alert(data.error);
+          } else {
+            $('#event-table-body').empty();
+            console.log('Events:', data.recent_events);
+            $.each(data.recent_events, function(index, event) {
+              var statusIcon = getStatusIcon(event.Status);
+              $('#event-table-body').append(
+                '<tr><td>' + event.EventType + '</td><td>' + event.TimeGenerated + '</td><td>' + event.SourceName + '</td><td>' + event.EventCode + '</td><td>' + event.Message + '</td><td>' + statusIcon + '</td><td>' + event.User + '</td><td>' + event.ComputerName + '</td></tr>'
+              );
+            });
+            $('#event-modal').modal('show'); // Show the modal
+          }
+        },
+        error: function(xhr, status, error) {
+          console.error('AJAX request failed:', xhr, status, error);
+          $('#loading').hide(); // Hide loading icon
+          alert('Une erreur s\'est produite : ' + (xhr.responseJSON ? xhr.responseJSON.error : 'Erreur inconnue'));
+        }
+      });
+    });
+
+    function getStatusIcon(status) {
+      switch (status) {
+        case 'Success':
+          return '<i class="fas fa-check-circle text-success"></i>';
+        case 'Error':
+          return '<i class="fas fa-times-circle text-danger"></i>';
+        case 'Warning':
+          return '<i class="fas fa-exclamation-triangle text-warning"></i>';
+        case 'Security audit success':
+          return '<i class="fas fa-shield-alt text-success"></i>';
+        case 'Security audit failure':
+          return '<i class="fas fa-shield-alt text-danger"></i>';
+        default:
+          return '<i class="fas fa-info-circle text-info"></i>';
+      }
+    }
+  });
+</script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js">
+</script>
+
+    <!-- Font Awesome -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+   <script type="text/javascript" src="static/DataTables/datatables.min.js"></script>
+    <!-- JavaScript pour mettre à jour l'utilisation du CPU et de la RAM et vérifier les mises à jour du système -->
+
+   <script>
+     function createLineChart(ctx, label) {
+    return new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Array(30).fill(''),
+            datasets: [{
+                label: label,
+                data: Array(30).fill(0),
+                borderColor: '#0077b6', // Couleur de la ligne bleue
+                backgroundColor: 'rgba(0, 119, 182, 0.2)', // Couleur de remplissage bleu clair
+                borderWidth: 3, // Épaisseur de la ligne
+                fill: true,
+                lineTension: 0.4, // Tension de la ligne
+                pointRadius: 0, // Taille des points (0 pour les masquer)
+                pointHoverRadius: 0 // Taille des points au survol (0 pour les masquer)
+            }]
+        },
+        options: {
+            responsive: true,
+            animation: {
+                duration: 1000 // Durée de l'animation en millisecondes
+            },
+            scales: {
+                x: {
+                    display: false // Masquer l'axe des abscisses
+                },
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)', // Couleur des grilles
+                        borderDash: [5, 5] // Style des grilles (pointillés)
+                    },
+                    ticks: {
+                        color: '#333', // Couleur des graduations
+                        font: {
+                            size: 14 // Taille de la police des graduations
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false // Masquer la légende
+                },
+                tooltip: {
+                    enabled: true, // Activer les info-bulles
+                    backgroundColor: '#0077b6', // Couleur de fond des info-bulles
+                    titleColor: '#fff', // Couleur du titre des info-bulles
+                    bodyColor: '#fff', // Couleur du contenu des info-bulles
+                    borderColor: '#0077b6', // Couleur de la bordure des info-bulles
+                    borderWidth: 2 // Épaisseur de la bordure des info-bulles
+                }
+            },
+            layout: {
+                padding: 20 // Marge autour du graphique
+            },
+            elements: {
+                line: {
+                    borderColor: '#0077b6', // Couleur de la ligne
+                    backgroundColor: 'rgba(0, 119, 182, 0.2)', // Couleur de remplissage
+                    borderWidth: 3, // Épaisseur de la ligne
+                    fill: true,
+                    tension: 0.4, // Tension de la ligne
+                    segment: {
+                        borderColor: '#0077b6', // Couleur de la ligne des segments
+                        backgroundColor: 'rgba(0, 119, 182, 0.2)', // Couleur de remplissage des segments
+                        borderWidth: 3 // Épaisseur de la ligne des segments
+                    }
+                }
+            }
+        }
+    });
+}
+
+let networkCharts = []; // Store references to the charts
+
+function createNetworkCharts(networkData) {
+    const chartGrid = document.getElementById('network-charts');
+    chartGrid.innerHTML = '';
+
+    networkData.forEach((adapter, index) => {
+        const chartItem = document.createElement('div');
+        chartItem.classList.add('chart-item');
+
+        const chartTitle = document.createElement('div');
+        chartTitle.classList.add('chart-title');
+        chartTitle.textContent = `Carte réseau ${index + 1}`;
+
+        const chartCanvas = document.createElement('canvas');
+        chartCanvas.id = `networkUsageChart-${index}`;
+
+        const chartValue = document.createElement('div');
+        chartValue.classList.add('chart-value');
+        chartValue.id = `network-usage-text-${index}`;
+        chartValue.textContent = 'Calcul en cours...';
+
+        chartItem.appendChild(chartTitle);
+        chartItem.appendChild(chartCanvas);
+        chartItem.appendChild(chartValue);
+        chartGrid.appendChild(chartItem);
+
+        const networkChart = createNetworkChart(chartCanvas.getContext('2d'), `Réception`, `Envoi`);
+        networkCharts.push(networkChart);
+    });
+}
+
+function createNetworkChart(ctx, receiveLabel, sendLabel) {
+    return new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Array(30).fill(''),
+            datasets: [
+                {
+                    label: receiveLabel,
+                    data: Array(30).fill(0),
+                    borderColor: '#0077b6',
+                    backgroundColor: 'rgba(0, 119, 182, 0.2)',
+                    borderWidth: 3,
+                    fill: true,
+                    lineTension: 0.4,
+                    pointRadius: 0,
+                    pointHoverRadius: 0
+                },
+                {
+                    label: sendLabel,
+                    data: Array(30).fill(0),
+                    borderColor: '#00c851',
+                    backgroundColor: 'rgba(0, 200, 81, 0.2)',
+                    borderWidth: 3,
+                    fill: true,
+                    lineTension: 0.4,
+                    pointRadius: 0,
+                    pointHoverRadius: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            animation: {
+                duration: 1000
+            },
+            scales: {
+                x: {
+                    display: false
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)',
+                        borderDash: [5, 5]
+                    },
+                    ticks: {
+                        color: '#333',
+                        font: {
+                            size: 14
+                        },
+                        callback: function(value) {
+                            return value.toFixed(2) + ' MB/s';
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: {
+                        color: '#0077b6',
+                        font: {
+                            size: 16
+                        }
+                    }
+                },
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: '#0077b6',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: '#0077b6',
+                    borderWidth: 2,
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + ' MB/s';
+                        }
+                    }
+                }
+            },
+            layout: {
+                padding: 20
+            },
+            elements: {
+                line: {
+                    tension: 0.4,
+                    segment: {
+                        borderWidth: 3
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateNetworkCharts(networkData) {
+    networkData.forEach((adapter, index) => {
+        const networkChart = networkCharts[index];
+        const chartItem = document.getElementById(`networkUsageChart-${index}`).parentElement;
+
+        if (networkChart) {
+            if (adapter.bytes_received_per_sec === 0 && adapter.bytes_sent_per_sec === 0) {
+                // Hide the chart item if there's no data
+                chartItem.style.display = 'none';
+            } else {
+                // Show the chart item and update the data
+                chartItem.style.display = 'block';
+
+                const receivedMBps = adapter.bytes_received_per_sec / (1024 * 1024);
+                const sentMBps = adapter.bytes_sent_per_sec / (1024 * 1024);
+
+                networkChart.data.datasets[0].data.push(receivedMBps);
+                networkChart.data.datasets[0].data.shift();
+                networkChart.data.datasets[1].data.push(sentMBps);
+                networkChart.data.datasets[1].data.shift();
+                networkChart.update();
+
+                const networkUsageText = document.getElementById(`network-usage-text-${index}`);
+                if (networkUsageText) {
+                    networkUsageText.textContent = `${receivedMBps.toFixed(2)} MB/s reçus, ${sentMBps.toFixed(2)} MB/s envoyés`;
+                }
+            }
+        }
+    });
+}
+
+
+
+
+
+
+
+
+
+function updateLineChart(chart, value) {
+    chart.data.datasets[0].data.push(value);
+    chart.data.datasets[0].data.shift();
+    chart.update();
+}
+
+
+
+
+   const cpuCtx = document.getElementById('cpuUsageChart').getContext('2d');
+const ramCtx = document.getElementById('ramUsageChart').getContext('2d');
+const cpuChart = createLineChart(cpuCtx, 'Utilisation du CPU');
+const ramChart = createLineChart(ramCtx, 'Utilisation de la RAM');
+const networkCtx = document.getElementById('networkUsageChart').getContext('2d');
+const networkChart = createLineChart(networkCtx, 'Utilisation du Réseau');
+
+function updateUsage() {
+    fetch('/usage')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error('Erreur du serveur :', data.error);
+                return;
+            }
+
+            updateLineChart(cpuChart, data.cpu_usage);
+            document.getElementById('cpu-usage-text').textContent = `${data.cpu_usage}%`;
+
+            updateLineChart(ramChart, data.ram_usage);
+            document.getElementById('ram-usage-text').textContent = `${data.ram_usage}%`;
+
+            if (networkCharts.length === 0) {
+                createNetworkCharts(data.network_data); // Create charts initially
+            } else {
+                updateNetworkCharts(data.network_data); // Update existing charts
+            }
+        })
+        .catch(error => console.error('Erreur lors de la récupération des données d\'utilisation :', error));
+
+    // Appel récursif de la fonction updateUsage toutes les 2 secondes
+    setTimeout(updateUsage, 2000);
+}
+
+// Appel initial de la fonction updateUsage
+updateUsage();
+function checkUpdateStatus() {
+    const updateStatus = document.getElementById('update-status');
+    updateStatus.innerHTML = `
+        <div class="file-icon">
+            <i class="fas fa-spinner fa-pulse" style="color: orange;" aria-hidden="true"></i>
+        </div>
+        <div class="file-name">Vérification des mises à jour...</div>
+    `;
+
+    fetch('/update_status')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.up_to_date) {
+                updateStatus.innerHTML = `
+                    <div class="file-icon">
+                        <i class="fas fa-check-circle" style="color: green;" aria-hidden="true"></i>
+                    </div>
+                    <div class="file-name">Système à jour</div>
+                    <div class="last-update-date">Dernière mise à jour : ${data.last_update_date}</div>
+                `;
+            } else if (data.error) {
+                updateStatus.innerHTML = `
+                    <div class="file-icon">
+                        <i class="fas fa-exclamation-circle" style="color: red;" aria-hidden="true"></i>
+                    </div>
+                    <div class="file-name">Erreur</div>
+                    <div class="last-update-date">Erreur : ${data.error}</div>
+                `;
+            } else {
+                updateStatus.innerHTML = `
+                    <div class="file-icon">
+                        <i class="fas fa-exclamation-circle" style="color: red;" aria-hidden="true"></i>
+                    </div>
+                    <div class="file-name">
+                        <button class="update-button" onclick="confirmAndUpdate()">Mettre à jour maintenant</button>
+                    </div>
+                    <div class="last-update-date">Dernière mise à jour : ${data.last_update_date}</div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Erreur lors de la vérification du statut de mise à jour :', error);
+            updateStatus.innerHTML = `
+                <div class="file-icon">
+                    <i class="fas fa-exclamation-triangle" style="color: orange;" aria-hidden="true"></i>
+                </div>
+                <div class="file-name">Erreur de connexion</div>
+                <div class="last-update-date">Veuillez réessayer plus tard</div>
+            `;
+        });
+}
+
+function confirmAndUpdate() {
+    if (confirm('Êtes-vous sûr de vouloir mettre à jour le système maintenant ?')) {
+        searchForUpdates();
+    }
+}
+
+function searchForUpdates() {
+    const updateStatus = document.getElementById('update-status');
+    updateStatus.innerHTML = `
+        <div class="file-icon">
+            <i class="fas fa-spinner fa-pulse" style="color: orange;" aria-hidden="true"></i>
+        </div>
+        <div class="file-name">Mise à jour en cours...</div>
+        <div class="progress">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width:0%;">
+                0%
+            </div>
+        </div>
+    `;
+
+    fetch('/update_system', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        handleUpdateResponse(data, updateStatus);
+    })
+    .catch(error => {
+        console.error('Erreur lors de la mise à jour :', error);
+        updateStatus.innerHTML = `
+            <div class="file-icon">
+                <i class="fas fa-exclamation-triangle" style="color: orange;" aria-hidden="true"></i>
+            </div>
+            <div class="file-name">Erreur de mise à jour</div>
+            <div class="last-update-date">Veuillez réessayer plus tard</div>
+        `;
+        setTimeout(checkUpdateStatus, 5000); // Recheck status after 5 seconds
+    });
+}
+
+function handleUpdateResponse(data, updateStatus) {
+    if (data.error) {
+        updateStatus.innerHTML = `
+            <div class="file-icon">
+                <i class="fas fa-exclamation-circle" style="color: red;" aria-hidden="true"></i>
+            </div>
+            <div class="file-name">Erreur de mise à jour</div>
+            <div class="last-update-date">Erreur : ${data.error}</div>
+        `;
+    } else if (data.status === 'Aucune mise à jour disponible') {
+        updateStatus.innerHTML = `
+            <div class="file-icon">
+                <i class="fas fa-check-circle" style="color: green;" aria-hidden="true"></i>
+            </div>
+            <div class="file-name">Aucune mise à jour disponible</div>
+            <div class="last-update-date">Dernière vérification : ${new Date().toLocaleString()}</div>
+        `;
+    } else if (data.status === 'Mise à jour terminée') {
+        updateStatus.innerHTML = `
+            <div class="file-icon">
+                <i class="fas fa-check-circle" style="color: green;" aria-hidden="true"></i>
+            </div>
+            <div class="file-name">Mise à jour terminée</div>
+            <div class="last-update-date">Dernière mise à jour : ${new Date().toLocaleString()}</div>
+        `;
+    } else {
+        simulateProgress(updateStatus);
+    }
+}
+
+function simulateProgress(updateStatus) {
+    const progressBar = updateStatus.querySelector('.progress-bar');
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += 10;
+        progressBar.style.width = `${progress}%`;
+        progressBar.setAttribute('aria-valuenow', progress);
+        progressBar.textContent = `${progress}%`;
+
+        if (progress >= 100) {
+            clearInterval(interval);
+            updateStatus.innerHTML = `
+                <div class="file-icon">
+                    <i class="fas fa-check-circle" style="color: green;" aria-hidden="true"></i>
+                </div>
+                <div class="file-name">Mise à jour terminée</div>
+                <div class="last-update-date">Dernière mise à jour : ${new Date().toLocaleString()}</div>
+            `;
+        }
+    }, 500);
+}
+
+// Call checkUpdateStatus on page load
+document.addEventListener('DOMContentLoaded', checkUpdateStatus);
+
+
+
+    function shutdownSystem() {
+    fetch('/shutdown', { method: 'POST' })
+        .then(response => {
+            if (response.ok) {
+                alert('Le système est en cours d\'arrêt');
+            } else {
+                const contentType = response.headers.get('Content-Type');
+                if (contentType && contentType.includes('application/json')) {
+                    response.json().then(data => {
+                        alert(`Erreur lors de l'arrêt du système : ${data.error}`);
+                    });
+                } else {
+                    response.text().then(data => {
+                        alert(`Erreur lors de l'arrêt du système :\n${data}`);
+                    });
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Erreur lors de l\'arrêt du système :', error);
+            alert('Une erreur est survenue lors de l\'arrêt du système. Veuillez réessayer.');
+        });
+}
+function restartSystem() {
+    fetch('/restart', { method: 'POST' })
+        .then(response => {
+            if (response.ok) {
+                alert('Le système est en cours de redémarrage');
+            } else {
+                const contentType = response.headers.get('Content-Type');
+                if (contentType && contentType.includes('application/json')) {
+                    response.json().then(data => {
+                        alert(`Erreur lors du redémarrage du système : ${data.error}`);
+                    });
+                } else {
+                    response.text().then(data => {
+                        alert(`Erreur lors du redémarrage du système :\n${data}`);
+                    });
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Erreur lors du redémarrage du système :', error);
+            alert('Une erreur est survenue lors du redémarrage du système. Veuillez réessayer.');
+        });
+}
+
+      function updateDriveColors() {
+        // Mise à jour des couleurs des barres de progression des lecteurs
+        const driveBars = document.querySelectorAll('.progress-bar[data-usage]');
+        driveBars.forEach(bar => {
+            const usage = parseFloat(bar.getAttribute('data-usage'));
+            if (usage < 50) {
+                bar.style.backgroundColor = 'green';
+            } else if (usage < 75) {
+                bar.style.backgroundColor = 'yellow';
+            } else {
+                bar.style.backgroundColor = 'red';
+            }
+        });
+    }
+
+    function logout() {
+        // Déconnexion de l'utilisateur
+        window.location.href = '/logout';
+    }
+
+    function networkscanpage() {
+        // Redirection vers la page de scan réseau
+        window.location.href = '/network_scan_page';
+    }
+
+    function index() {
+        // Redirection vers la page d'accueil
+        window.location.href = '/';
+    }
+
+    let currentDisplayMode = 'grid'; // Autres options : 'list', 'icons'
+
+    function showFileOptionsMenu(button) {
+        // Affichage du menu des options de fichier
+        const optionsMenu = button.parentElement.querySelector('.file-options-menu');
+        optionsMenu.style.display = 'flex';
+
+        document.addEventListener('click', handleClickOutside);
+    }
+
+    function handleClickOutside(event) {
+        // Fermeture du menu des options de fichier lors d'un clic en dehors
+        const optionsMenus = document.querySelectorAll('.file-options-menu');
+        optionsMenus.forEach(menu => {
+            if (!menu.contains(event.target) && !event.target.classList.contains('option-button')) {
+                menu.style.display = 'none';
+            }
+        });
+
+        document.removeEventListener('click', handleClickOutside);
+    }
+
+    function copyFile(filePath) {
+        // Copie d'un fichier
+        copiedFile = filePath;
+        cutFile = null;
+        console.log('Copying file:', filePath);
+        showSuccessMessage('Fichier copié');
+    }
+
+    function cutFile(filePath) {
+        // Déplacement d'un fichier
+        cutFile = filePath;
+        copiedFile = null;
+        console.log('Cutting file:', filePath);
+        showSuccessMessage('Fichier coupé');
+    }
+
+    function pasteFile(currentPath) {
+        // Collage d'un fichier
+        if (copiedFile) {
+            // Collage de la copie
+            fetch('/paste_file', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    base: currentPath.split('/')[0],
+                    currentPath: currentPath,
+                    filePath: copiedFile,
+                    action: 'copy'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status) {
+                    showSuccessMessage(data.status);
+                    copiedFile = null;
+                    refreshFileGrid();
+                } else if (data.error) {
+                    showErrorMessage(data.error);
+                }
+            })
+            .catch(error => {
+                showErrorMessage('Une erreur s\'est produite lors du collage du fichier.');
+                console.error('Erreur lors du collage du fichier:', error);
+            });
+        } else if (cutFile) {
+            // Collage du déplacement
+            fetch('/paste_file', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    base: currentPath.split('/')[0],
+                    currentPath: currentPath,
+                    filePath: cutFile,
+                    action: 'cut'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status) {
+                    showSuccessMessage(data.status);
+                    cutFile = null;
+                    refreshFileGrid();
+                } else if (data.error) {
+                    showErrorMessage(data.error);
+                }
+            })
+            .catch(error => {
+                showErrorMessage('Une erreur s\'est produite lors du déplacement du fichier.');
+                console.error('Erreur lors du déplacement du fichier:', error);
+            });
+        } else {
+            showErrorMessage('Aucun fichier n\'a été copié ou coupé.');
+        }
+    }
+
+    function renameFile(filePath, fileName) {
+        // Renommage d'un fichier
+        const newName = prompt("Entrez le nouveau nom du fichier :", fileName);
+        if (newName && newName !== fileName) {
+            fetch('/rename_file', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    base: filePath.split('/')[0],
+                    currentPath: filePath.substring(0, filePath.lastIndexOf('/')),
+                    fileName: fileName,
+                    newName: newName
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status) {
+                    showSuccessMessage(data.status);
+                    refreshFileGrid();
+                } else if (data.error) {
+                    showErrorMessage(data.error);
+                }
+            })
+            .catch(error => {
+                showErrorMessage('Une erreur s\'est produite lors du renommage du fichier.');
+                console.error('Erreur lors du renommage du fichier:', error);
+            });
+        }
+    }
+
+function deleteFile(filePath) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce fichier ?')) {
+        fetch('/delete_file', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                filePath: filePath
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Fichier supprimé avec succès');
+                refreshFileGrid();
+            } else {
+                alert('Erreur lors de la suppression du fichier : ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Erreur lors de la suppression du fichier :', error);
+            alert('Une erreur est survenue lors de la suppression du fichier. Veuillez réessayer.');
+        });
+    }
+}
+
+
+    function showSuccessMessage(message) {
+        // Affichage d'un message de succès
+        alert(message);
+    }
+
+    function showErrorMessage(message) {
+        // Affichage d'un message d'erreur
+        alert(message);
+    }
+
+
+const gridView = document.getElementById('gridView');
+        const listView = document.getElementById('listView');
+        const fileGridContainer = document.querySelector('.file-grid');
+        const fileListContainer = document.querySelector('.file-list');
+
+       gridView.addEventListener('click', () => {
+    fileGridContainer.style.display = 'grid';
+    fileListContainer.style.display = 'none';
+});
+
+listView.addEventListener('click', () => {
+    fileGridContainer.style.display = 'none';
+    fileListContainer.style.display = 'grid';
+});
+
+function showFileOptionsMenu(button) {
+    const menu = button.nextElementSibling;
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+
+// Live search function
+function liveSearch() {
+    var input = document.getElementById('myInput');
+    var filter = input.value.toLowerCase();
+
+    var fileItems = document.querySelectorAll('.file-item'); // Sélectionnez tous les éléments de fichier à filtrer
+
+    fileItems.forEach(function(item) {
+        var itemName = item.querySelector('.file-name').textContent.toLowerCase();
+        if (itemName.includes(filter)) {
+            item.style.display = 'block'; // Affiche l'élément si le nom correspond au filtre
+        } else {
+            item.style.display = 'none'; // Masque l'élément s'il ne correspond pas au filtre
+        }
+    });
+}
+
+// Attachez un écouteur d'événements à l'entrée de recherche
+var searchInput = document.getElementById('myInput');
+if (searchInput) {
+    searchInput.addEventListener('input', liveSearch);
+}
+
+function updateInternetStatus(online) {
+        var iconElement = document.getElementById('network-icon');
+        if (online) {
+            iconElement.classList.add('online');
+            iconElement.classList.remove('offline');
+        } else {
+            iconElement.classList.add('offline');
+            iconElement.classList.remove('online');
+        }
+    }
+
+    window.addEventListener('load', function() {
+        updateInternetStatus(navigator.onLine);
+    });
+    window.addEventListener('online', function() { updateInternetStatus(true); });
+    window.addEventListener('offline', function() { updateInternetStatus(false); });
+
+
+
+$(document).ready(function() {
+        function updateHostStatusIcon() {
+            $.ajax({
+                url: '/check_host_accessibility',
+                type: 'GET',
+                success: function(data) {
+                    if (data.status === 'accessible') {
+                        $('#host-icon')
+
+                            .removeClass('fa-wifi fa-check-circle text-success')
+                            .addClass('fa-exclamation-circle text-danger');
+                            /*$('#host-icon-container').addClass('disabled');*/
+                    } else {
+                        $('#host-icon')
+                            .removeClass('fa-wifi fa-exclamation-circle text-danger')
+                            .addClass('fa-check-circle text-success');
+
+                            $('#host-icon-container').removeClass('disabled');
+                    }
+                },
+                error: function() {
+                    $('#host-icon')
+                        .removeClass('fa-wifi fa-check-circle text-success')
+                        .addClass('fa-exclamation-circle text-danger');
+                }
+            });
+        }
+
+        updateHostStatusIcon(); // Update icon status on page load
+        setInterval(updateHostStatusIcon, 10000); // Update icon status every 10 seconds
+    });
+
+
+
+</script>
+<div class="floating-icon" id="network-icon">
+    <i class="fas fa-globe"></i>
+</div>
+<div class="floating-icon ip-status">
+    <i id="host-icon" class="fas fa-wifi"></i>
+
+</div>
+
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+</body>
+</html>
+
+
